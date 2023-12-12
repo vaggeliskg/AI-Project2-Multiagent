@@ -101,7 +101,7 @@ class ReflexAgent(Agent):
             score -= 100/closest_ghost 
         
         "*** YOUR CODE HERE***"
-        return score + successorGameState.getScore()            # finally return the score and + the successorGameState.getScore() to improte results 
+        return score + successorGameState.getScore()            # finally return the score and + the successorGameState.getScore() to improve results 
 
 def scoreEvaluationFunction(currentGameState: GameState):
     """
@@ -170,12 +170,11 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
             for action in gameState.getLegalActions(0):                         # check all actions
                 successor = gameState.generateSuccessor(0, action)              # get the successor
-                result = min_val(successor,1,depth)                             # and call min (ghost's turn)
-                first_element = result[0]
-                if first_element > m:                                           # update the neccesary value
-                    m =  first_element
-                    optimal_val, optimal_action = m,action
-            return (optimal_val,optimal_action)
+                result = min_val(successor,1,depth)[0]                          # and call min (ghost's turn)
+                if result > m:                                                  # update the neccesary values
+                    m = result 
+                    optimal_action = action
+            return (m,optimal_action)
         
         def min_val(gameState,agentIndex,depth):
             if depth == self.depth or gameState.isLose() or gameState.isWin():
@@ -189,21 +188,19 @@ class MinimaxAgent(MultiAgentSearchAgent):
                 next_agent = agentIndex + 1                                    # else add + 1 to the index for the next ghost
             
             for action in gameState.getLegalActions(agentIndex):
-                    if(next_agent == 0):
-                        successor = gameState.generateSuccessor(agentIndex,action)  
-                        result = max_val(successor,depth + 1)                  # if pacman is next increase depth and call max
-                        first_element = result[0]
-                    else:
-                        successor = gameState.generateSuccessor(agentIndex,action)
-                        result = min_val(successor,agentIndex + 1 ,depth)     # if a ghost is next just recursively call min
-                        first_element = result[0]
-                    if first_element < m:
-                        m = first_element 
-                        optimal_val, optimal_action = m,action
-            return (optimal_val,optimal_action)
+                if(next_agent == 0):
+                    successor = gameState.generateSuccessor(agentIndex,action)  
+                    result = max_val(successor,depth + 1)[0]                  # if pacman is next increase depth and call max
+                else:
+                    successor = gameState.generateSuccessor(agentIndex,action)
+                    result = min_val(successor,agentIndex + 1 ,depth)[0]     # if a ghost is next just recursively call min
+                if result < m:
+                    m = result 
+                    optimal_action = action
+            return (m,optimal_action)
         
         first_act = max_val(gameState,0)[1]                                   # start at root by calling max_val
-        return first_act                                                      # return actions
+        return first_act                                                      # return action 
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
@@ -227,17 +224,16 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
 
             for action in gameState.getLegalActions(0):
                 successor = gameState.generateSuccessor(0, action)
-                result = min_val(successor,1,depth,a,b)
-                first_element = result[0]
-                if first_element > m:
-                    m =  first_element
-                    optimal_val, optimal_action = m,action
+                result = min_val(successor,1,depth,a,b)[0]
+                if result > m:
+                    m =  result
+                    optimal_action = action
 
                 if m > b:                                      # pruning using the pseudocode given
                     return (m,None)
 
                 a = max(a,m)
-            return (optimal_val,optimal_action)
+            return (m,optimal_action)
         
         def min_val(gameState,agentIndex,depth,a,b):
             if depth == self.depth or gameState.isLose() or gameState.isWin():
@@ -253,23 +249,21 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             for action in gameState.getLegalActions(agentIndex):
                     if(next_agent == 0):
                         successor = gameState.generateSuccessor(agentIndex,action)
-                        result = max_val(successor,depth + 1,a,b)
-                        first_element = result[0]
+                        result = max_val(successor,depth + 1,a,b)[0]
                     else:
                         successor = gameState.generateSuccessor(agentIndex,action)
-                        result = min_val(successor,agentIndex + 1 ,depth,a,b)
-                        first_element = result[0]
+                        result = min_val(successor,agentIndex + 1 ,depth,a,b)[0]
 
-                    if first_element < m:                                 
-                        m = first_element 
-                        optimal_val, optimal_action = m,action
+                    if result < m:                                 
+                        m = result 
+                        optimal_action = action
                     
                     if m < a:                                        # pruning using the pseudocode given
                         return (m,None)
                     
                     b = min(b,m)
 
-            return (optimal_val,optimal_action)
+            return (m,optimal_action)
         
         first_act = max_val(gameState,0,a,b)[1]
         return first_act
@@ -296,10 +290,9 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
 
             for action in gameState.getLegalActions(0):
                 successor = gameState.generateSuccessor(0, action)
-                result = min_val(successor,1,depth)
-                first_element = result[0]
-                if first_element > m:
-                    m =  first_element
+                result = min_val(successor,1,depth)[0]
+                if result > m:
+                    m =  result
                     optimal_action = action
             return (m,optimal_action)
         
@@ -318,18 +311,16 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
             for action in gameState.getLegalActions(agentIndex):
                 if(next_agent == 0):
                     successor = gameState.generateSuccessor(agentIndex,action)
-                    result = max_val(successor,depth + 1)
-                    first_element = result[0]
-                    value += first_element * probability                       # update value using probability and the value returned
+                    result = max_val(successor,depth + 1)[0]
+                    value += result * probability                       # update value using probability and the value returned
                     random_action = action                                     # update actions
                 
                 else:
                     successor = gameState.generateSuccessor(agentIndex,action)
-                    result = min_val(successor,agentIndex + 1 ,depth)
-                    first_element = result[0]
-                    value += first_element * probability
+                    result = min_val(successor,agentIndex + 1 ,depth)[0]
+                    value += result * probability
                     random_action = action
-            
+                
             return (value,random_action)
         
         first_act = max_val(gameState,0)[1]
